@@ -153,7 +153,7 @@ const char *lettersp = "00"; /* extra gap between letters */
 const char *wordsp = "0000"; /* extra gap between words */
 
 /* return the morse string for character c*/
-const char *morse(int c){
+const char *morsechar(int c){
 	const char *m = NULL;
 	if( c>=' ' && c<='~' ){
 		m = morsetable[c];

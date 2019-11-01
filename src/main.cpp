@@ -23,28 +23,44 @@ static DigitalOut green(LED_GREEN);
 static DigitalOut led_app_red(D5);
 static DigitalOut led_app_green(D9);
 
-char message[] = "Hello World!";
-char onoff[1024];
+char message[] = "Hello World!"; /* message to send */
+char  mcode[1024];
+char onoff[1024]; /* buffer for string of 01 to control LED */
 
-char *translate(char *)
+/* translated ASCII text message into Morse code
+ * If the morse(char) function is used the morse will be represented
+ * as .- 
+ * You will need to indicate gaps between letters and words,
+ * I suggest spaces and tabs respectively.
+ *
+ * parameters:
+ *     char * message      string to convert
+ *     char * morsebuffer  buffer into which morse is written
+ *
+ * returns:
+ *     char *              pointer to converted morse, 
+ */
+char *texttomorse(char *messsage, char *morsebuffer)
 {
 	char *c;
-	char  mcode[1024];
 
-	for( c=message ; *c ; c++ ){ /* c is current character in string */
+	for( c=messsage ; *c ; c++ ){ /* c is current character in string */
 		switch( *c ) {
 			case ' ': /* a space */
 				strcat(mcode, "\t"); /* use tabs an inter-word spaces */
 				break;
 			default:
-				const char *m = morse(*c);    /* lookup morse */
+				const char *m = morsechar(*c);    /* lookup morse */
 				if(m) { /* if morse code founfd */
-					strcat(mcode, m);   /* add to buffer */
-					strcat(mcode, " "); /* add inter-letter space */
+					strcat(morsebuffer, m);   /* add to buffer */
+					strcat(morsebuffer, " "); /* add inter-letter space */
 				}
 		}
 	}
+	return morsebuffer;
+}
 
+char *morsetobinary(char *morse, char *binbuffer)
 	for( c = mcode ; *c ; c++) {
 		switch( *c ) {
 			case '.': 

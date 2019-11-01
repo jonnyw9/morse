@@ -1,5 +1,5 @@
 /* Morse Code generator */
-const char *morse(int);
+const char *morsechar(int);
 extern const char *dot;
 extern const char *dash;
 extern const char *lettersp;
