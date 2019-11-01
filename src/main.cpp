@@ -24,7 +24,7 @@ static DigitalOut led_app_red(D5);
 static DigitalOut led_app_green(D9);
 
 char message[] = "Hello World!"; /* message to send */
-char  mcode[1024];
+char morse[1024];
 char onoff[1024]; /* buffer for string of 01 to control LED */
 
 /* translated ASCII text message into Morse code
@@ -47,7 +47,7 @@ char *texttomorse(char *messsage, char *morsebuffer)
 	for( c=messsage ; *c ; c++ ){ /* c is current character in string */
 		switch( *c ) {
 			case ' ': /* a space */
-				strcat(mcode, "\t"); /* use tabs an inter-word spaces */
+				strcat(morsebuffer, "\t"); /* use tabs an inter-word spaces */
 				break;
 			default:
 				const char *m = morsechar(*c);    /* lookup morse */
@@ -60,38 +60,62 @@ char *texttomorse(char *messsage, char *morsebuffer)
 	return morsebuffer;
 }
 
+/* Translate morse in ascii into binary
+ * input string is interpreted as follows:
+ *   .  dot
+ *   -  dash
+ *  ' ' inter-letter space
+ *  \t  inter-word space
+ *
+ * output string has
+ *    0  off for time unit
+ *    1   on for time unit
+ *
+ *  parameters:
+ *      char * morse       morse string
+ *      char * binbuffer   buffer for output
+ *
+ * return:
+ *     char *         pointer to binbuffer
+ */
 char *morsetobinary(char *morse, char *binbuffer)
-	for( c = mcode ; *c ; c++) {
+{
+	char *c;
+	for( c = morse ; *c ; c++) {
 		switch( *c ) {
 			case '.': 
-				strcat(onoff, dot);
+				strcat(binbuffer, dot);  /* dot is define in the morse.h and morse.cpp */
 				break;
 			case '-':
-				strcat(onoff, dash);
+				strcat(binbuffer, dash);
 				break;
 			case ' ':
-				strcat(onoff, lettersp);
+				strcat(binbuffer, lettersp);
 				break;
 			case '\t':
-				strcat(onoff, wordsp);
+				strcat(binbuffer, wordsp);
 				break;
 		}
 	}
-	return onoff;
+	return binbuffer;
 }
 
+/* Task for sending morse.
+ * Uses the hard-wired buffer 'onoff' declared above.
+ */
 void morseblink(void)
 {
+	enum { on, off };
 	static char *s = onoff;
 	switch(*s++){
 		case '0':
-			red = 1;
+			red = off;
 			break;
 		case '1':
-			red = 0;
+			red = on;
 			break;
 		case '\0':
-			s = onoff;
+			s = onoff;/* reset to beginning of buffer */
 			break;
 	}
 }
@@ -104,7 +128,8 @@ int main () {
 
     schInit();
 
-	translate(message);
+	texttomorse(message, morse);
+	morsetobinary(morse, onoff);
 
     schAddTask(morseblink, 0, 200);
     schAddTask(led2ToggleTask, 500, 500);
